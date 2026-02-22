@@ -8,8 +8,9 @@ pyinstaller --noconfirm --windowed --name Gripper-win `
   --add-data "domain;domain" `
   --add-data "sim;sim" `
   --add-data "persistence;persistence" `
+  --add-data "manual.pdf;." `
+  --add-data "projeto_exemplo.json;." `
   main.py
 
 Compress-Archive -Path "dist/Gripper-win/*" -DestinationPath "dist/Gripper-win.zip" -Force
 Write-Host "Build completo. Zip: dist/Gripper-win.zip"
-

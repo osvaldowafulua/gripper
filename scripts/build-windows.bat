@@ -12,6 +12,8 @@ pyinstaller --noconfirm --windowed --name Gripper-win ^
   --add-data "domain;domain" ^
   --add-data "sim;sim" ^
   --add-data "persistence;persistence" ^
+  --add-data "manual.pdf;." ^
+  --add-data "projeto_exemplo.json;." ^
   main.py
 
 REM Zip dist
@@ -19,4 +21,3 @@ powershell -NoProfile -Command "Compress-Archive -Path 'dist/Gripper-win/*' -Des
 
 echo Build completo. Zip em dist\Gripper-win.zip
 endlocal
-

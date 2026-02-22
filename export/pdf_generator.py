@@ -70,6 +70,12 @@ def generate_pdf(path: str, cfg: ProjectConfig, ascii_diagram: str):
 
     story.append(Paragraph("Operação e Segurança", styles["Heading2"]))
     story.append(Paragraph("Respeite normas de segurança. A expansão A0602 possui LEDs apenas indicadores.", styles["Normal"]))
+    story.append(Spacer(1, 12))
+    story.append(Paragraph("Painel de Simulação e Software", styles["Heading2"]))
+    story.append(Paragraph("Este projeto inclui um painel de simulação local e monitorização via web em http://localhost:8000/.", styles["Normal"]))
+    story.append(Paragraph("Existe também uma aplicação desktop desenvolvida em Python/PySide6, com builds para macOS e Windows gerados a partir deste repositório.", styles["Normal"]))
+    story.append(Paragraph("No Windows, o executável é distribuído em formato compactado (ZIP) gerado por processo de build automatizado (GitHub Actions). No macOS, a aplicação é distribuída em imagem DMG.", styles["Normal"]))
+    story.append(Paragraph("Para suporte, consulte o README do repositório de software e siga as práticas de segurança industrial ao integrar o painel com o equipamento real.", styles["Normal"]))
 
     doc = SimpleDocTemplate(path, pagesize=A4, title="Manual Técnico – Braço Pneumático")
     doc.build(story)
