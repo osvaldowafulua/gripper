@@ -1,0 +1,151 @@
+{
+  "controlador": "Arduino Opta WiFi",
+  "expansao": "Arduino Pro Opta Ext A0602 (Analog Expansion) — LEDs apenas indicadores",
+  "versao": "1.0.0",
+  "io_map": [
+    {
+      "terminal": "X1:01",
+      "pin": "I1",
+      "tag": "S1.0",
+      "descricao": "C1 Gripper – fim curso A",
+      "tipo": "DI",
+      "tensao": "+24V",
+      "obs": ""
+    },
+    {
+      "terminal": "X1:02",
+      "pin": "I2",
+      "tag": "S1.1",
+      "descricao": "C1 Gripper – fim curso B",
+      "tipo": "DI",
+      "tensao": "+24V",
+      "obs": ""
+    },
+    {
+      "terminal": "X1:03",
+      "pin": "I3",
+      "tag": "S2.0",
+      "descricao": "C2 Braço – BAIXO",
+      "tipo": "DI",
+      "tensao": "+24V",
+      "obs": ""
+    },
+    {
+      "terminal": "X1:04",
+      "pin": "I4",
+      "tag": "S2.1",
+      "descricao": "C2 Braço – CIMA",
+      "tipo": "DI",
+      "tensao": "+24V",
+      "obs": ""
+    },
+    {
+      "terminal": "X1:05",
+      "pin": "I5",
+      "tag": "S3.0",
+      "descricao": "C3 Sacode – BAIXO",
+      "tipo": "DI",
+      "tensao": "+24V",
+      "obs": ""
+    },
+    {
+      "terminal": "X1:06",
+      "pin": "I6",
+      "tag": "START",
+      "descricao": "Pedal NO",
+      "tipo": "DI",
+      "tensao": "+24V",
+      "obs": ""
+    },
+    {
+      "terminal": "X1:07",
+      "pin": "I7",
+      "tag": "IG",
+      "descricao": "Emergência NC -> 0V (pull-up no PLC)",
+      "tipo": "DI",
+      "tensao": "+24V",
+      "obs": ""
+    },
+    {
+      "terminal": "X1:08",
+      "pin": "I8",
+      "tag": "S3.1",
+      "descricao": "C3 Sacode – CIMA",
+      "tipo": "DI",
+      "tensao": "+24V",
+      "obs": ""
+    },
+    {
+      "terminal": "X2:01",
+      "pin": "Q1(D0)",
+      "tag": "C1",
+      "descricao": "Válvula gripper",
+      "tipo": "DO",
+      "tensao": "+24V",
+      "obs": ""
+    },
+    {
+      "terminal": "X2:02",
+      "pin": "Q2(D1)",
+      "tag": "C2",
+      "descricao": "Válvula sobe/desce",
+      "tipo": "DO",
+      "tensao": "+24V",
+      "obs": ""
+    },
+    {
+      "terminal": "X2:03",
+      "pin": "Q3(D2)",
+      "tag": "C3",
+      "descricao": "Válvula sacode",
+      "tipo": "DO",
+      "tensao": "+24V",
+      "obs": ""
+    },
+    {
+      "terminal": "X2:04",
+      "pin": "Q4(D3)",
+      "tag": "AIR/LUZ",
+      "descricao": "Ar geral ou luz física",
+      "tipo": "DO",
+      "tensao": "+24V",
+      "obs": ""
+    }
+  ],
+  "colors": [
+    { "nome": "Sensor PNP", "cor": "Castanho", "funcao": "+24V" },
+    { "nome": "Sensor PNP", "cor": "Azul", "funcao": "0V" },
+    { "nome": "Sensor PNP", "cor": "Preto", "funcao": "Sinal -> Ix" },
+    { "nome": "Carga 24V", "cor": "Vermelho", "funcao": "+24V" },
+    { "nome": "Carga 24V", "cor": "Azul", "funcao": "0V" }
+  ],
+  "protecoes": [
+    {
+      "item": "F1 Geral",
+      "tipo": "Fusível/Disjuntor",
+      "valor": "2A",
+      "notas": ""
+    },
+    { "item": "F2 C1", "tipo": "Fusível", "valor": "1A", "notas": "" },
+    { "item": "F3 C2", "tipo": "Fusível", "valor": "1A", "notas": "" },
+    { "item": "F4 C3", "tipo": "Fusível", "valor": "1A", "notas": "" },
+    {
+      "item": "Relé Segurança",
+      "tipo": "Categoria",
+      "valor": "PL d/Cat.3",
+      "notas": ""
+    },
+    {
+      "item": "Válvula Dump",
+      "tipo": "Segurança",
+      "valor": "Despressurização",
+      "notas": ""
+    }
+  ],
+  "params": {
+    "STEP_MS": 5000,
+    "SACODE_MS": 5000,
+    "MOVE_TIMEOUT_MS": 900,
+    "MAX_CYCLE_MS": 25000
+  }
+}

@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Opta WiFi + A0602 – Painel</title>
+    <style>
+      :root{
+        --bg:#0f1318; --panel:#182029; --panel-2:#121921; --line:#26323b; --muted:#90a4ae;
+        --ready:#00e676; --run:#00b0ff; --stop:#ff1744; --lock:#ffb300; --text:#e8eef2; --accent:#00e5ff;
+      }
+      *{box-sizing:border-box}
+      html,body{height:100%}
+      body{margin:0; padding:20px; background:var(--bg); color:var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;}
+      .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
+      .brand{display:flex; align-items:center; gap:12px}
+      .brand .title{font-weight:700; letter-spacing:0.4px}
+      .brand .subtitle{color:var(--muted); font-size:12px}
+      .panel{background:linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:12px; box-shadow: 0 0 0 1px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.03)}
+      .lamps{display:flex; gap:12px; align-items:center}
+      .lamp{width:24px; height:24px; border-radius:50%; background:#2b3640; box-shadow: inset 0 -3px 6px rgba(0,0,0,0.7), 0 0 0 2px rgba(0,0,0,0.2); position:relative; opacity:.35}
+      .lamp::after{content:""; position:absolute; inset:-8px; border-radius:50%; filter:blur(12px); opacity:0}
+      .lamp.ready.on{background:var(--ready); opacity:1}
+      .lamp.run.on{background:var(--run); opacity:1}
+      .lamp.stop.on{background:var(--stop); opacity:1}
+      .lamp.lock.on{background:var(--lock); opacity:1}
+      .lamp.on::after{opacity:.55; background:currentColor}
+      .lamp-label{font-size:12px; color:var(--muted)}
+      .controls{display:flex; gap:12px; flex-wrap:wrap}
+      .btn{background:var(--panel); border:2px solid var(--line); color:var(--text); padding:12px 18px; border-radius:10px; cursor:pointer; font-weight:800; letter-spacing:.02em; text-transform:uppercase; font-size:15px; box-shadow: 0 2px 0 rgba(255,255,255,0.06), 0 6px 18px rgba(0,0,0,0.25)}
+      .btn:hover{border-color:#355069; transform: translateY(-1px)}
+      .btn.sm{padding:6px 10px; font-size:12px; border-width:1px; letter-spacing:.01em; box-shadow: 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.18)}
+      .btn.start{background:linear-gradient(180deg, #0f6d31, #0b4f24); border-color:#13a34b; color:#eaffee}
+      .btn.stop{background:linear-gradient(180deg, #7f0f1f, #5b0b17); border-color:#ff3b52; color:#fff3f4}
+      .btn.reset{background:linear-gradient(180deg, #6a4c0c, #4b3609); border-color:#ffb300; color:#fff7e0}
+      .btn.round{width:84px; height:84px; border-radius:50%; padding:0; display:grid; place-items:center; font-size:28px; text-align:center}
+      @media (max-width: 560px){ .btn.round{ width:68px; height:68px; font-size:22px } }
+      .grid{display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:14px}
+      .span-3{grid-column:1 / -1}
+      .section-title{font-size:12px; color:var(--muted); margin:6px 0 10px 2px; text-transform:uppercase; letter-spacing:.08em}
+      .io-grid{display:grid; grid-template-columns: repeat(4, 1fr); gap:10px}
+      .io-tile{background:rgba(255,255,255,0.02); border:1px solid var(--line); border-radius:8px; padding:10px; text-align:center}
+      .io-tile .name{font-weight:700; font-size:12px; color:var(--muted)}
+      .io-tile .val{margin-top:8px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:18px; background:#0b1116; padding:8px 0; border-radius:6px}
+      .io-tile.on{border-color:#2a7a2a; box-shadow: inset 0 0 0 1px rgba(29,185,84,0.2)}
+      .switches label{display:inline-flex; align-items:center; gap:8px; margin:6px 10px 6px 0; background:#121921; border:1px solid var(--line); padding:6px 10px; border-radius:8px}
+      .switches input{appearance:none; width:36px; height:20px; background:#2b3640; border-radius:10px; position:relative; outline:none; border:1px solid #1b232b}
+      .switches input::after{content:""; width:16px; height:16px; border-radius:50%; background:#7c8b96; position:absolute; top:1px; left:1px; transition:all .15s}
+      .switches input:checked{background:#165c25}
+      .switches input:checked::after{left:18px; background:#00e676}
+      #clock{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:14px; color:var(--accent); margin-left:12px; opacity:.95}
+      .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#0b1116; padding:10px; border-radius:8px; border:1px solid var(--line); color:#d0d6da}
+      .hazard{border:1px solid var(--stop); box-shadow: inset 0 0 0 1px rgba(229,57,53,0.25)}
+      /* Ajustes visuais para inputs ficarem "dentro do card" */
+      .panel{overflow:hidden}
+      .mono label{display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--muted)}
+      .mono input, .mono select{background:#121921; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:10px 12px; outline:none}
+      .mono input:focus, .mono select:focus{border-color:#355069}
+      /* Layout horizontal do card de configurações */
+      .config-grid{display:grid; grid-template-columns: minmax(320px, 1fr) minmax(480px, 1.4fr); gap:16px; align-items:start}
+      .net-row{display:grid; grid-template-columns: 120px 1fr; gap:8px; align-items:center; margin:6px 0}
+      .mini{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted)}
+      .kv{display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px; align-items:end}
+      .kv .item{display:flex; flex-direction:column; gap:6px}
+      .kv .item input{text-align:right; min-width:0}
+      .kv .item select{width:56px; margin-left:auto; max-width:100%}
+      #uMAX{width:56px; font-size:12px; padding:6px 6px; text-align:center}
+      .mono{overflow:hidden}
+
+      .badge{display:inline-flex; align-items:center; gap:8px; border-radius:999px; padding:6px 12px; font-weight:700; letter-spacing:.03em; border:1px solid transparent}
+      .badge.online{background:#0f2a1a; color:#1db954; border-color:#1db95433}
+      .badge.offline{background:#2a0f12; color:#ff3b52; border-color:#ff3b5233}
+      .badge.sim{background:#0f2130; color:#2ea8ff; border-color:#2ea8ff33}
+      .conn{display:flex; align-items:center}
+      .wifi{display:flex; gap:12px; align-items:center; margin-left:12px}
+      .wifi .item{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted)}
+      .wifi .bars{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:14px}
+
+      /* Responsivo */
+      @media (max-width: 1100px){
+        .io-grid{grid-template-columns: repeat(3, 1fr)}
+      }
+      @media (max-width: 820px){
+        .io-grid{grid-template-columns: repeat(2, 1fr)}
+        .config-grid{grid-template-columns: 1fr}
+        .controls .btn{flex:1 1 140px}
+      }
+      @media (max-width: 560px){
+        .io-grid{grid-template-columns: 1fr}
+        .topbar{flex-direction:column; align-items:flex-start; gap:8px}
+        .lamps{gap:8px}
+        .lamp{width:18px; height:18px}
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="brand">
+        <div>
+          <div class="title">Opta WiFi + A0602</div>
+          <div class="subtitle">Painel Industrial de Simulação</div>
+        </div>
+      </div>
+      <div class="conn"><span id="conn-badge" class="badge offline">Desconectado</span>
+        <div class="wifi">
+          <div class="item"><span>WiFi OPTA</span><span id="wifi-opta-bars" class="bars">----</span><span id="wifi-opta-rssi"></span></div>
+          <div class="item"><span>WiFi APP</span><span id="wifi-app-bars" class="bars">----</span><span id="wifi-app-rssi"></span></div>
+        </div>
+      </div>
+      <div class="lamps">
+        <div class="lamp ready" id="lamp-ready" title="READY"></div><span class="lamp-label">READY</span>
+        <div class="lamp run" id="lamp-run" title="RUN"></div><span class="lamp-label">RUN</span>
+        <div class="lamp stop" id="lamp-stop" title="STOP"></div><span class="lamp-label">STOP</span>
+        <div class="lamp lock" id="lamp-lock" title="EMERGENCY_LOCKED"></div><span class="lamp-label">LOCK</span>
+        <span class="lamp-label" id="conn-label" style="margin-left:12px"></span>
+        <span id="clock"></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="controls" style="display:flex; flex-direction:column; gap:8px">
+        <div class="ctrl-row" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center">
+          <button class="btn start round" id="start" title="START" aria-label="START">S</button>
+          <button class="btn stop round" id="stop" title="STOP" aria-label="STOP">P</button>
+          <button class="btn reset round" id="reset" title="RESET LOCK" aria-label="RESET LOCK">R</button>
+          <button class="btn stop round" id="emgBtn" title="EMERGÊNCIA" aria-label="EMERGÊNCIA">E</button>
+          <span id="ctrlMsg" class="lamp-label"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel span-3">
+        <div class="section-title">CONFIGURAÇÕES</div>
+        <div class="config-grid">
+          <div class="mono">
+            <div class="net-row"><span class="mini">Modo API</span>
+              <select id="modeSel">
+                <option value="sim">Simulação Local</option>
+                <option value="proxy">Opta via IP</option>
+                <option value="modbus">Modbus TCP</option>
+              </select>
+            </div>
+            <div class="net-row"><span class="mini">Base/IP</span>
+              <input id="baseIp" placeholder="http://192.168.0.10/" />
+            </div>
+            <div style="display:flex; gap:8px; margin-top:6px; flex-wrap:wrap">
+              <button class="btn" id="applyNet">Aplicar Rede</button>
+              <button class="btn" id="connectOpta">Conectar Opta</button>
+              <div id="netMsg" class="lamp-label"></div>
+            </div>
+          </div>
+          <div class="mono">
+            <div class="mini">Parâmetros do Ciclo</div>
+            <div class="kv" style="margin-top:6px">
+              <div class="item" title="Tempo de cada fase: fechar, descer, subir, abrir">
+                <span class="mini">STEP</span>
+                <div style="display:grid; grid-template-columns: 1fr 70px; gap:6px">
+                  <input id="pSTEP" type="number" min="0.1" step="0.1" placeholder="5" />
+                  <select id="uSTEP"><option value="s" selected>seg</option><option value="ms">ms</option><option value="m">min</option></select>
+                </div>
+              </div>
+              <div class="item" title="Tempo total da etapa de sacudir (C3)">
+                <span class="mini">SACODE</span>
+                <div style="display:grid; grid-template-columns: 1fr 70px; gap:6px">
+                  <input id="pSACODE" type="number" min="0.1" step="0.1" placeholder="5" />
+                  <select id="uSACODE"><option value="s" selected>seg</option><option value="ms">ms</option><option value="m">min</option></select>
+                </div>
+              </div>
+              <div class="item" title="Timeout para alternância de fim de curso do C3">
+                <span class="mini">MOVE TIMEOUT</span>
+                <div style="display:grid; grid-template-columns: 1fr 70px; gap:6px">
+                  <input id="pMOVE" type="number" min="0.1" step="0.1" placeholder="0.9" />
+                  <select id="uMOVE"><option value="s" selected>seg</option><option value="ms">ms</option><option value="m">min</option></select>
+                </div>
+              </div>
+              <div class="item" title="Tempo máximo do ciclo completo (anti-travamento)">
+                <span class="mini">MAX CYCLE</span>
+                <div style="display:grid; grid-template-columns: 1fr 70px; gap:6px">
+                  <input id="pMAX" type="number" min="1" step="0.1" placeholder="25" />
+                  <select id="uMAX"><option value="s" selected>seg</option><option value="ms">ms</option><option value="m">min</option></select>
+                </div>
+              </div>
+              <div class="item" title="Preset 0/1/2">
+                <span class="mini">PRESET</span>
+                <select id="presetSel">
+                  <option value="0">0 (LENTO)</option>
+                  <option value="1">1 (NORMAL)</option>
+                  <option value="2">2 (RÁPIDO)</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap">
+              <button class="btn sm" id="presetSlow">LENTO</button>
+              <button class="btn sm" id="presetNormal">NORMAL</button>
+              <button class="btn sm" id="presetFast">RÁPIDO</button>
+              <button class="btn sm" id="applyParams">Aplicar Ciclo</button>
+              <button class="btn" id="applyAll">APLICAR GERAL</button>
+            </div>
+            <div class="section-title" style="margin-top:10px">AJUSTE TUNE (I8)</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap">
+              <button class="btn sm" id="tuneDec">1x −</button>
+              <button class="btn sm" id="tuneInc">2x +</button>
+              <button class="btn sm" id="tuneNext">3x Próximo</button>
+              <button class="btn sm" id="tunePrev">4x Anterior</button>
+              <button class="btn sm" id="tuneReset">Longo Reset</button>
+            </div>
+            <div id="tuneMsg" class="lamp-label" style="margin-top:6px"></div>
+            <div id="paramsMsg" class="lamp-label" style="margin-top:6px"></div>
+            <div id="estimate" class="lamp-label" style="margin-top:6px"></div>
+            <div id="allMsg" class="lamp-label" style="margin-top:6px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="section-title">SENSORES</div>
+        <div class="switches">
+          <label><input type="checkbox" data-sensor="S1.1" /> S1.1 FECHADO (I1)</label>
+          <label><input type="checkbox" data-sensor="S2.0" /> S2.0 CIMA (I2)</label>
+          <label><input type="checkbox" data-sensor="S2.1" /> S2.1 BAIXO (I3)</label>
+          <label><input type="checkbox" data-sensor="STOP" /> STOP (I5)</label>
+          <label><input type="checkbox" data-sensor="START" /> START (I6)</label>
+          <label><input type="checkbox" data-sensor="EMERGENCIA" /> EMERGÊNCIA (I7)</label>
+          <label><input type="checkbox" data-sensor="TUNE" /> TUNE (I8)</label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="section-title">SAÍDAS</div>
+        <div id="q" class="io-grid"></div>
+      </div>
+
+      <div class="panel">
+        <div class="section-title">ENTRADAS</div>
+        <div id="i" class="io-grid"></div>
+      </div>
+
+      <div class="panel span-3" id="lock-panel">
+        <div class="section-title">DIAGNÓSTICO</div>
+        <div id="diag" class="mono"></div>
+        <div class="section-title">CICLOS</div>
+        <div id="cycles" class="mono"></div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = '';
+      let SETTINGS = { mode: 'sim', remote_base: '' };
+      async function api(path, opts) {
+        try{
+          const r = await fetch(
+            API_BASE + path,
+            Object.assign(
+              { headers: { "Content-Type": "application/json" } },
+              opts || {},
+            ),
+          );
+          if(!r.ok) return null;
+          return r.json();
+        }catch(e){
+          return null;
+        }
+      }
+
+      function setLamps(p){
+        const set = (id, on)=>{
+          const el = document.getElementById(id);
+          if(!el) return;
+          el.classList.toggle('on', !!on);
+        };
+        set('lamp-ready', p.READY);
+        set('lamp-run', p.RUN);
+        set('lamp-stop', p.STOP);
+        set('lamp-lock', p.EMERGENCY_LOCKED);
+        const lockPanel = document.getElementById('lock-panel');
+        lockPanel.classList.toggle('hazard', !!p.EMERGENCY_LOCKED);
+      }
+
+      function renderTiles(containerId, entries){
+        const el = document.getElementById(containerId);
+        el.innerHTML = '';
+        entries.forEach(([name, val])=>{
+          const d = document.createElement('div');
+          d.className = 'io-tile' + (val? ' on':'' );
+          const nm = document.createElement('div'); nm.className='name'; nm.textContent=name;
+          const vv = document.createElement('div'); vv.className='val'; vv.textContent = val? '1':'0';
+          d.appendChild(nm); d.appendChild(vv); el.appendChild(d);
+        });
+      }
+
+      function updateClock(){
+        const el = document.getElementById('clock');
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2,'0');
+        const mm = String(now.getMinutes()).padStart(2,'0');
+        const ss = String(now.getSeconds()).padStart(2,'0');
+        el.textContent = `${hh}:${mm}:${ss}`;
+      }
+
+      async function refresh() {
+        const s = await api("/api/state");
+        const cl = document.getElementById('conn-label');
+        const cb = document.getElementById('conn-badge');
+        if (!s) {
+          if(cl){cl.textContent = 'Conexão: OFFLINE'; cl.style.color = '#e53935';}
+          if(cb){cb.className='badge offline'; cb.textContent='Desconectado';}
+          // Mostrar placeholders para SAÍDAS/ENTRADAS mesmo offline
+          const qOrder = ["Q1","Q2","Q3","Q4","Q5","Q6","Q7"];
+          const iOrder = ["I1","I2","I3","I4","I5","I6","I7","I8"];
+          renderTiles("q", qOrder.map(k=>[k, false]));
+          renderTiles("i", iOrder.map(k=>[k, false]));
+          return;
+        }
+        SETTINGS.mode = s.mode || 'sim';
+        SETTINGS.remote_base = s.remote_base || '';
+        if(cl){ cl.textContent = 'Conexão: ONLINE'; cl.style.color = '#1db954'; }
+        if (cb){
+          if (SETTINGS.mode === 'proxy') { cb.className='badge online'; cb.textContent = `Conectado ao Opta • ${SETTINGS.remote_base||''}`; }
+          else if (SETTINGS.mode === 'modbus') { cb.className='badge online'; cb.textContent = `Conectado (Modbus) • ${SETTINGS.remote_base||''}`; }
+          else { cb.className='badge sim'; cb.textContent = 'Simulação Local'; }
+        }
+        document.getElementById("diag").textContent = s.diag;
+        // WiFi indicators
+        const bars = (q)=>{
+          const maps = {0:'----',1:'▂---',2:'▂▄--',3:'▂▄▆-',4:'▂▄▆█'}; return maps[String(q)]||'----'; };
+        const wifi = s.wifi || {};
+        const wOptaBars = document.getElementById('wifi-opta-bars'); if (wOptaBars) wOptaBars.textContent = bars(wifi.opta_quality);
+        const wOptaR = document.getElementById('wifi-opta-rssi'); if (wOptaR) wOptaR.textContent = wifi.opta_rssi!=null? `${wifi.opta_rssi} dBm` : (wifi.opta_latency_ms!=null? `${wifi.opta_latency_ms} ms` : 'N/D');
+        const wAppBars = document.getElementById('wifi-app-bars'); if (wAppBars) wAppBars.textContent = bars(wifi.app_quality);
+        const wAppR = document.getElementById('wifi-app-rssi'); if (wAppR) wAppR.textContent = wifi.app_rssi!=null? `${wifi.app_rssi} dBm` : 'N/D';
+        setLamps(s.panel);
+        const qOrder = ["Q1","Q2","Q3","Q4","Q5","Q6","Q7"];
+        const iOrder = ["I1","I2","I3","I4","I5","I6","I7","I8"];
+        renderTiles("q", qOrder.map(k=>[k, !!s.outputs[k]]));
+        renderTiles("i", iOrder.map(k=>[k, !!s.inputs[k]]));
+        document.getElementById("cycles").textContent = String(s.cycles);
+        const disabled = SETTINGS.mode !== 'sim';
+        ['start','stop','reset','emgBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = disabled; });
+        const msg = document.getElementById('ctrlMsg');
+        if (msg) msg.textContent = disabled ? 'Controlo disponível apenas em Simulação Local' : '';
+        const eb = document.getElementById('emgBtn'); if (eb) eb.setAttribute('data-on', s.panel && s.panel.EMERGENCY_LOCKED ? '1':'0');
+
+        // Atualizar campos com params quando vindos do sim e usuário não está editando
+        if (s.params && SETTINGS.mode === 'sim'){
+          const isActive = (id)=>{ const el=document.getElementById(id); return el && el===document.activeElement; };
+          const setConv = (inp, sel, ms)=>{
+            const el = document.getElementById(inp); if(!el) return;
+            if (isActive(inp)) return;
+            const u = (document.getElementById(sel)||{}).value || 's';
+            const v = (u==='s'? ms/1000 : u==='m'? ms/60000 : ms);
+            el.value = v;
+          };
+          setConv('pSTEP','uSTEP', s.params.STEP_MS||0);
+          setConv('pSACODE','uSACODE', s.params.SACODE_MS||0);
+          setConv('pMOVE','uMOVE', s.params.MOVE_TIMEOUT_MS||0);
+          setConv('pMAX','uMAX', s.params.MAX_CYCLE_MS||0);
+          updateEstimate();
+        }
+      }
+
+      async function sendCmd(cmd, value) {
+        await api("/api/command", {
+          method: "POST",
+          body: JSON.stringify({ cmd, value }),
+        });
+      }
+
+      async function setSensor(name, value) {
+        await api("/api/sensor", {
+          method: "POST",
+          body: JSON.stringify({ name, value }),
+        });
+      }
+
+      function toMs(value, unit){
+        const v = Number(value)||0;
+        if (unit === 's') return Math.round(v * 1000);
+        if (unit === 'm' || unit === 'min') return Math.round(v * 60000);
+        return Math.round(v);
+      }
+      function updateEstimate() {
+        const gv = (i,u)=>{
+          const iv = (document.getElementById(i)||{}).value; const uu = (document.getElementById(u)||{}).value || 's';
+          return toMs(iv, uu);
+        };
+        const stepMs = gv('pSTEP','uSTEP');
+        const sacodeMs = gv('pSACODE','uSACODE');
+        if (!stepMs && !sacodeMs) { const e = document.getElementById('estimate'); if(e) e.textContent=''; return; }
+        const est = 4*stepMs + sacodeMs; // fechar, descer, subir, abrir
+        const e = document.getElementById('estimate');
+        if (e) {
+          const txt = `${(est/1000).toFixed(3)} s`;
+          e.textContent = `Estimativa de ciclo: ~ ${txt}`;
+        }
+      }
+
+      function fromMs(ms, unit){
+        if (unit === 's') return (ms/1000);
+        if (unit === 'm' || unit === 'min') return (ms/60000);
+        return ms;
+      }
+      const unitIds = ['uSTEP','uSACODE','uMOVE','uMAX'];
+      function saveUnits(){ unitIds.forEach(id=>{ const el=document.getElementById(id); if(el) localStorage.setItem('unit:'+id, el.value); }); }
+      function restoreUnits(){ unitIds.forEach(id=>{ const el=document.getElementById(id); if(!el) return; const v=localStorage.getItem('unit:'+id); if(v){ el.value=v; } else { el.value='s'; } el.dataset.prevUnit = el.value; }); }
+      function convertDisplayOnUnitChange(inputId, selectId){
+        const sel = document.getElementById(selectId);
+        const inp = document.getElementById(inputId);
+        if(!sel||!inp) return;
+        const prev = sel.dataset.prevUnit || sel.value || 's';
+        const ms = toMs(inp.value, prev);
+        const newVal = fromMs(ms, sel.value);
+        inp.value = Number.isFinite(newVal) ? String(newVal) : '';
+        sel.dataset.prevUnit = sel.value;
+        updateEstimate();
+        saveUnits();
+      }
+      unitIds.forEach(uid=>{
+        const el = document.getElementById(uid);
+        if(el){ el.addEventListener('change', ()=>{
+          if(uid==='uSTEP') convertDisplayOnUnitChange('pSTEP','uSTEP');
+          if(uid==='uSACODE') convertDisplayOnUnitChange('pSACODE','uSACODE');
+          if(uid==='uMOVE') convertDisplayOnUnitChange('pMOVE','uMOVE');
+          if(uid==='uMAX') convertDisplayOnUnitChange('pMAX','uMAX');
+        }); }
+      });
+
+      const btnStart = document.getElementById("start");
+      if (btnStart) btnStart.addEventListener("click", () => sendCmd("start", true));
+
+      const btnStop = document.getElementById("stop");
+      if (btnStop) btnStop.addEventListener("click", () => sendCmd("stop", true));
+
+      const btnReset = document.getElementById("reset");
+      if (btnReset) btnReset.addEventListener("click", () => sendCmd("reset", true));
+      const emgBtn = document.getElementById('emgBtn');
+      if (emgBtn) emgBtn.addEventListener('click', ()=>{
+        if (SETTINGS.mode !== 'sim') return;
+        const isOn = emgBtn.getAttribute('data-on') === '1';
+        const next = !isOn; emgBtn.setAttribute('data-on', next? '1':'0');
+        sendCmd('emergency', next);
+      });
+
+      document.querySelectorAll("input[data-sensor]").forEach((cb) => {
+        cb.addEventListener("change", (e) =>
+          setSensor(e.target.getAttribute("data-sensor"), e.target.checked),
+        );
+      });
+
+      const applyNet = document.getElementById('applyNet');
+      if (applyNet) applyNet.addEventListener('click', async ()=>{
+        const modeEl = document.getElementById('modeSel');
+        const baseEl = document.getElementById('baseIp');
+        const mode = modeEl ? modeEl.value : 'sim';
+        const base = baseEl ? baseEl.value : '';
+        const res = await api('/api/settings', { method:'POST', body: JSON.stringify({ mode, remote_base: base })});
+        const msg = document.getElementById('netMsg'); if(msg) msg.textContent = res && res.ok ? 'Salvo' : 'Erro';
+      });
+
+      const connectBtn = document.getElementById('connectOpta');
+      if (connectBtn) connectBtn.addEventListener('click', async ()=>{
+        const baseEl = document.getElementById('baseIp');
+        const base = baseEl ? baseEl.value.trim() : '';
+        const msg = document.getElementById('netMsg'); if(msg) msg.textContent = 'A conectar...';
+        const prob = await api('/api/probe', { method:'POST', body: JSON.stringify({ base })});
+        if(!prob || !prob.ok){ if(msg) msg.textContent = 'Falha ao conectar'; return; }
+        const mode = prob.mode;
+        const rb = prob.base;
+        const s1 = await api('/api/settings', { method:'POST', body: JSON.stringify({ mode, remote_base: rb })});
+        if(s1 && s1.ok){
+          const ms = document.getElementById('modeSel'); if(ms) ms.value = mode;
+          const bi = document.getElementById('baseIp'); if(bi) bi.value = rb;
+          if(msg) msg.textContent = mode==='proxy' ? 'Conectado via HTTP' : 'Conectado via Modbus';
+        } else {
+          if(msg) msg.textContent = 'Erro ao aplicar rede';
+        }
+      });
+
+      const applyParams = document.getElementById('applyParams');
+      if (applyParams) applyParams.addEventListener('click', async ()=>{
+        const gv = (i,u)=>{ const iv=(document.getElementById(i)||{}).value; const uu=(document.getElementById(u)||{}).value||'s'; return toMs(iv, uu); };
+        const body = {
+          STEP_MS: gv('pSTEP','uSTEP'),
+          SACODE_MS: gv('pSACODE','uSACODE'),
+          MOVE_TIMEOUT_MS: gv('pMOVE','uMOVE'),
+          MAX_CYCLE_MS: gv('pMAX','uMAX')
+        };
+        const res = await api('/api/params', { method:'POST', body: JSON.stringify(body) });
+        const msg = document.getElementById('paramsMsg'); if(msg) msg.textContent = res && res.ok ? 'Aplicado' : 'Erro';
+        updateEstimate();
+        saveUnits();
+      });
+
+      const applyAll = document.getElementById('applyAll');
+      if (applyAll) applyAll.addEventListener('click', async ()=>{
+        const modeEl = document.getElementById('modeSel');
+        const baseEl = document.getElementById('baseIp');
+        const mode = modeEl ? modeEl.value : 'sim';
+        const base = baseEl ? baseEl.value : '';
+        const gv = (i,u)=>{ const iv=(document.getElementById(i)||{}).value; const uu=(document.getElementById(u)||{}).value||'s'; return toMs(iv, uu); };
+        const body = {
+          STEP_MS: gv('pSTEP','uSTEP'),
+          SACODE_MS: gv('pSACODE','uSACODE'),
+          MOVE_TIMEOUT_MS: gv('pMOVE','uMOVE'),
+          MAX_CYCLE_MS: gv('pMAX','uMAX'),
+          PRESET: (document.getElementById('presetSel')||{}).value || 0
+        };
+        const s1 = await api('/api/settings', { method:'POST', body: JSON.stringify({ mode, remote_base: base })});
+        const s2 = await api('/api/params', { method:'POST', body: JSON.stringify(body) });
+        const msg = document.getElementById('allMsg');
+        if(msg){
+          if ((s1 && s1.ok) && (s2 && s2.ok)) {
+            msg.textContent = mode === 'sim' ? 'Aplicado (rede + ciclo)' : 'Aplicado (rede). Ciclo só afeta Simulação Local';
+          } else if (s1 && s1.ok) {
+            msg.textContent = 'Rede aplicada. Erro nos parâmetros';
+          } else if (s2 && s2.ok) {
+            msg.textContent = 'Parâmetros aplicados. Erro na rede';
+          } else {
+            msg.textContent = 'Erro ao aplicar geral';
+          }
+        }
+        updateEstimate();
+      });
+
+      const estInputs = [
+        'pSTEP','uSTEP','pSACODE','uSACODE','pMOVE','uMOVE','pMAX','uMAX'
+      ];
+      estInputs.forEach(id=>{
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', updateEstimate);
+        el.addEventListener('change', updateEstimate);
+      });
+      updateEstimate();
+
+      function setValFromMs(inputId, selectId, ms){
+        const sel = document.getElementById(selectId); const inp = document.getElementById(inputId);
+        if(!sel||!inp) return; const u = sel.value || 's'; inp.value = fromMs(ms, u);
+      }
+      const preset = (stepMs, sacodeMs, moveMs, maxMs)=>{
+        setValFromMs('pSTEP','uSTEP', stepMs);
+        setValFromMs('pSACODE','uSACODE', sacodeMs);
+        setValFromMs('pMOVE','uMOVE', moveMs);
+        setValFromMs('pMAX','uMAX', maxMs);
+        updateEstimate();
+      };
+      const btnSlow = document.getElementById('presetSlow'); if(btnSlow) btnSlow.addEventListener('click', ()=>preset(5000,5000,900,25000));
+      const btnNormal = document.getElementById('presetNormal'); if(btnNormal) btnNormal.addEventListener('click', ()=>preset(3000,3000,600,20000));
+      const btnFast = document.getElementById('presetFast'); if(btnFast) btnFast.addEventListener('click', ()=>preset(1500,1500,400,12000));
+
+      async function loadSettings(){
+        const s = await api('/api/settings');
+        if(!s) return;
+        restoreUnits();
+        setValFromMs('pSTEP','uSTEP', s.params.STEP_MS);
+        setValFromMs('pSACODE','uSACODE', s.params.SACODE_MS);
+        setValFromMs('pMOVE','uMOVE', s.params.MOVE_TIMEOUT_MS);
+        setValFromMs('pMAX','uMAX', s.params.MAX_CYCLE_MS);
+        const ms = document.getElementById('modeSel'); if(ms) ms.value = s.mode;
+        const bi = document.getElementById('baseIp'); if(bi) bi.value = s.remote_base || '';
+        updateEstimate();
+      }
+      loadSettings();
+
+      // TUNE buttons
+      async function tune(action){
+        const r = await api('/api/tune', { method:'POST', body: JSON.stringify({ action }) });
+        const tm = document.getElementById('tuneMsg');
+        if(r && r.ok){
+          tm.textContent = `TUNE: ${action} ✓`;
+        } else {
+          tm.textContent = 'Erro no TUNE';
+        }
+      }
+      const td=document.getElementById('tuneDec'); if(td) td.addEventListener('click', ()=>tune('dec'));
+      const ti=document.getElementById('tuneInc'); if(ti) ti.addEventListener('click', ()=>tune('inc'));
+      const tn=document.getElementById('tuneNext'); if(tn) tn.addEventListener('click', ()=>tune('next'));
+      const tp=document.getElementById('tunePrev'); if(tp) tp.addEventListener('click', ()=>tune('prev'));
+      const tr=document.getElementById('tuneReset'); if(tr) tr.addEventListener('click', ()=>tune('reset'));
+
+      setInterval(refresh, 500);
+      setInterval(updateClock, 1000);
+      refresh();
+      updateClock();
+
+      
+    </script>
+  </body>
+</html>
